@@ -243,6 +243,31 @@ All required fields defined by this specification are public.
 
 ### API Endpoints
 
+### Non-Authoritative Namespace Handling
+
+If a registry receives a request for a `<REVERSE_DNS_NAME>` it is not authoritative for, it MUST return:
+
+* `421 Misdirected Request`
+* `error_code` = `not_authoritative`
+
+Registries MAY include an advisory hint to the authoritative registry when known from DNS discovery.
+
+If no `_oohdi.<media_owner_domain>` TXT record exists (or no usable `r` value can be derived), the registry MUST still return `421 Misdirected Request` with `error_code = not_authoritative`, and MUST omit the authoritative registry hint.
+
+For non-authoritative namespaces, registries MUST NOT return lifecycle or existence statuses (`200`, `301`, `304`, `404`, `410`).
+
+Recommended error payload:
+
+```json
+{
+  "error_code": "not_authoritative",
+  "message": "This registry is not authoritative for the requested media owner namespace.",
+  "authoritative_registry_hint": "registry.example.com"
+}
+```
+
+When no authoritative registry can be discovered via DNS, omit `authoritative_registry_hint`.
+
 #### Media Owner Information
 
 **Endpoint:**
@@ -256,6 +281,7 @@ GET https://<DISPLAY_REGISTRY_DNS_NAME>/oohdi/<REVERSE_DNS_NAME>
 * `200 OK` – Organization data
 * `301 Moved Permanently` – Organization renamed or acquired
 * `304 Not Modified` – No change
+* `421 Misdirected Request` – Registry is not authoritative for the requested namespace
 * `404 Not Found` – Organization never existed
 * `410 Gone` – Organization no longer exists
 
@@ -309,6 +335,7 @@ GET https://<DISPLAY_REGISTRY_DNS_NAME>/oohdi/<REVERSE_DNS_NAME>/<MEDIA_OWNER_DI
 * `301 Moved Permanently` – Unit re-identified, replaced, or acquired by a new Media Owner
   (Location header MUST point to the new canonical identifier)
 * `304 Not Modified` – No change
+* `421 Misdirected Request` – Registry is not authoritative for the requested namespace
 * `404 Not Found` – Unit never existed
 * `410 Gone` – Unit permanently removed with no replacement
 
