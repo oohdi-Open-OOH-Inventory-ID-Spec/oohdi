@@ -308,7 +308,7 @@ GET https://<DISPLAY_REGISTRY_DNS_NAME>/oohdi/<REVERSE_DNS_NAME>/<MEDIA_OWNER_DI
 |-------|------|----------|-------------|--------------|
 | `state` | Object | Yes | Current operational state | |
 | `state.type` | Enum | Yes | Display technology type | `digital`, `static`, `print` |
-| `state.status` | Enum | Yes | Current operational status | `active`, `inactive`, `maintenance`, `decommissioned` |
+| `state.status` | Enum | Yes | Current operational status | `planned`, `active`, `inactive`, `maintenance`, `decommissioned` |
 
 #### Inventory Fields
 
@@ -345,6 +345,19 @@ GET https://<DISPLAY_REGISTRY_DNS_NAME>/oohdi/<REVERSE_DNS_NAME>/<MEDIA_OWNER_DI
 | `physical.viewer` | Object | No | Viewer characteristics and orientation | |
 | `physical.viewer.context` | Enum | No | Viewer context or environment type | `vehicular`, `pedestrian`, `queue`, `seated` |
 | `physical.viewer.reads` | Enum | No | Traffic direction relative to display | `L` (left), `R` (right), `C` (center), `W` (wall), `omni` (omnidirectional) |
+
+#### Device Fields
+
+| Field | Type | Required | Description | Constraints |
+|-------|------|----------|-------------|-------------|
+| `device` | Object | Conditional | Device metadata for digital inventory units | Required when `state.type` is `digital` |
+| `device.dimensions` | Object | Yes (if `device` provided) | Display device pixel dimensions | |
+| `device.dimensions.units` | Enum | Yes (if `device` provided) | Unit of measurement | `pixels` |
+| `device.dimensions.width` | Number | Yes (if `device` provided) | Device pixel width | Positive integer |
+| `device.dimensions.height` | Number | Yes (if `device` provided) | Device pixel height | Positive integer |
+| `device.player` | Object | No | Playback platform metadata | |
+| `device.player.platform` | String | No | Name of the player platform | Max 255 characters |
+| `device.player.version` | String | No | Player platform version | Max 100 characters |
 
 #### Capabilities Fields
 
@@ -402,14 +415,25 @@ GET https://<DISPLAY_REGISTRY_DNS_NAME>/oohdi/<REVERSE_DNS_NAME>/<MEDIA_OWNER_DI
   "physical": {
     "dimensions": {
       "units": "feet",
-      "width": 14.5,
-      "height": 3.0,
+      "width": 48,
+      "height": 14,
       "elevation": 25.0
     },
     "facing": 90,
     "viewer": {
       "context": "vehicular",
       "reads": "R"
+    }
+  },
+  "device": {
+    "dimensions": {
+      "units": "pixels",
+      "width": 1400,
+      "height": 400
+    },
+    "player": {
+      "platform": "MyPlayerPlatform",
+      "version": "8.4.12"
     }
   },
   "capabilities": {
