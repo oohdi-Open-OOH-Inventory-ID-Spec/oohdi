@@ -182,6 +182,18 @@ v=OOHDI1; r=registry.example.com;
 
 Only a single registry is supported as the source of truth for any media owner domain
 
+### Discovery Scope
+
+This specification defines only two public, unauthenticated read endpoints:
+
+* Media Owner Information
+* Sellable Inventory Unit Information
+
+These endpoints are intended for identifier validation, metadata verification, and per-identifier synchronization.
+
+Enumeration or bulk discovery of all inventory for a media owner is out of scope for this specification.
+Registries MAY provide additional discovery mechanisms (for example: list endpoints, feeds, or files), but clients MUST NOT assume they exist.
+
 ---
 
 ### Version Compatibility
@@ -205,6 +217,15 @@ The HTTP-based service that exposes authoritative metadata for `oohdi` identifie
 **Authoritative Registry**
 The Registry designated by a Media Owner via DNS as the authoritative source of truth for their identifiers.
 
+### Authority and Ownership Rules
+
+* A Media Owner is authoritative for identifiers scoped under its reverse-DNS namespace when it controls the corresponding forward DNS domain.
+* Authority is established through the `_oohdi.<media_owner_domain>` TXT record.
+* The TXT record MUST declare exactly one authoritative registry (`r`) for that domain at a time.
+* Clients MUST treat the registry declared in current DNS as authoritative.
+* When a Media Owner changes registries, it MUST update DNS; clients MUST follow DNS after propagation.
+* Sub-brands or delegated business units SHOULD use delegated domains and corresponding reverse-DNS namespaces, each with their own `_oohdi` TXT record.
+
 ---
 
 ## 8. Registry API
@@ -215,6 +236,8 @@ Registries MUST:
 * Be publicly readable without authentication
 * Implement reasonable rate limiting
 * Follow HTTP caching best practices
+
+All required fields defined by this specification are public.
 
 ---
 
@@ -289,6 +312,14 @@ GET https://<DISPLAY_REGISTRY_DNS_NAME>/oohdi/<REVERSE_DNS_NAME>/<MEDIA_OWNER_DI
 * `404 Not Found` – Unit never existed
 * `410 Gone` – Unit permanently removed with no replacement
 
+### Identifier Lifecycle and Persistence
+
+* Once issued, an `oohdi` identifier MUST NOT be reassigned to a different sellable inventory unit.
+* If a unit is replaced or re-identified, registries SHOULD return `301 Moved Permanently` from the old identifier to the successor identifier.
+* If a unit is permanently removed with no successor, registries SHOULD return `410 Gone`.
+* `404 Not Found` indicates the unit did not exist in the authoritative registry context.
+* Retention duration for historical identifiers is implementation-defined.
+
 ---
 
 **Schema:**
@@ -317,6 +348,13 @@ GET https://<DISPLAY_REGISTRY_DNS_NAME>/oohdi/<REVERSE_DNS_NAME>/<MEDIA_OWNER_DI
 | `inventory` | Object | No | Inventory hierarchy information | |
 | `inventory.unit_type` | Enum | No | Type of sellable unit | `display`, `segment`, `structure` |
 | `inventory.parent_unit_id` | String | No | Parent unit if this is a subdivision | Must be valid oohdi identifier |
+
+Hierarchy Rules:
+
+* Hierarchies MAY contain multiple levels.
+* `parent_unit_id` MAY reference identifiers in the same or a different media owner namespace.
+* Circular references are forbidden.
+* Registries MUST reject records that introduce direct or indirect cycles.
 
 #### Location Fields
 
@@ -370,12 +408,17 @@ GET https://<DISPLAY_REGISTRY_DNS_NAME>/oohdi/<REVERSE_DNS_NAME>/<MEDIA_OWNER_DI
 | `capabilities.media_formats[].min_duration_seconds` | Number | Conditional | Minimum display duration in seconds | Required for digital formats; positive integer |
 | `capabilities.media_formats[].max_duration_seconds` | Number | Conditional | Maximum display duration in seconds | Required for digital formats; positive integer; >= min_duration_seconds |
 
+Validation Rules:
+
+* Duration fields MUST be omitted for static formats.
+* Duration fields are required for digital formats.
+
 #### Taxonomy Fields
 
 | Field | Type | Required | Description | Constraints |
 |-------|------|----------|-------------|-------------|
 | `taxonomy` | Object | No | Classification and categorization | |
-| `taxonomy.venue_type_id` | String | No | OpenOOH venue taxonomy identifier | Format: `openooh:venue:<type>` |
+| `taxonomy.venue_type_id` | String | No | OpenOOH venue taxonomy identifier | Format: `openooh:venue:<code>` |
 
 #### Metadata Fields
 
@@ -441,19 +484,19 @@ GET https://<DISPLAY_REGISTRY_DNS_NAME>/oohdi/<REVERSE_DNS_NAME>/<MEDIA_OWNER_DI
       {
         "type": "digital_image",
         "enabled": true,
-        "min_duration": 8,
-        "max_duration": 8
+        "min_duration_seconds": 8,
+        "max_duration_seconds": 8
       },
       {
         "type": "digital_video",
         "enabled": true,
-        "min_duration": 8,
-        "max_duration": 30
+        "min_duration_seconds": 8,
+        "max_duration_seconds": 30
       }
     ]
   },
   "taxonomy": {
-    "venue_type_id": "301"
+    "venue_type_id": "openooh:venue:301"
   },
   "extensions": {},
   "created_at": "2025-01-01T12:00:00Z",
@@ -472,6 +515,13 @@ GET https://<DISPLAY_REGISTRY_DNS_NAME>/oohdi/<REVERSE_DNS_NAME>/<MEDIA_OWNER_DI
 
   * `bounds` MUST be defined and represent maximum operating area
 
+Identifier semantics for mobile units:
+
+* The identifier represents the sellable inventory unit, not a fixed point.
+* `location.point` represents the current or representative center point.
+* `location.bounds` represents the operating area envelope.
+* Buying and transaction logic is out of scope.
+
 ---
 
 ## 10. Privacy and Security Considerations
@@ -480,6 +530,8 @@ GET https://<DISPLAY_REGISTRY_DNS_NAME>/oohdi/<REVERSE_DNS_NAME>/<MEDIA_OWNER_DI
 * No personally identifiable information is required
 * Contact information is OPTIONAL
 * Authentication and write operations are out of scope
+* All required fields in this specification are public
+* Optional fields MAY be omitted by the registry operator
 
 ---
 
@@ -492,6 +544,8 @@ The `extensions` object allows vendor-specific data.
 * Extensions MUST be namespaced
 * Extensions MUST NOT redefine or override core fields
 * Clients MUST ignore unknown extensions
+
+Recommended namespacing format: `<namespace>/<field>` or `<namespace>:<field>`.
 
 ---
 
