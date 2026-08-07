@@ -390,8 +390,8 @@ Hierarchy Rules:
 | `location` | Object | Yes | Geographic location information | |
 | `location.location_type` | Enum | Yes | Location permanence type | `fixed`, `mobile` |
 | `location.point` | Object | Conditional | Geographic coordinates | Required for `fixed`; represents center for `mobile` |
-| `location.point.latitude` | Number | Conditional | Latitude in decimal degrees | -90 to 90 |
-| `location.point.longitude` | Number | Conditional | Longitude in decimal degrees | -180 to 180 |
+| `location.point.latitude` | Number | Conditional | Latitude in decimal degrees to 7 digits of precision | -90 to 90 |
+| `location.point.longitude` | Number | Conditional | Longitude in decimal degrees to 7 digits of precision | -180 to 180 |
 | `location.bounds` | Object | Conditional | Operating area boundary | Required for `mobile`; must be null for `fixed` |
 | `location.bounds.type` | String | Conditional | GeoJSON geometry type | `Polygon` |
 | `location.bounds.coordinates` | Array | Conditional | GeoJSON coordinate array | Standard GeoJSON format |
