@@ -405,8 +405,10 @@ Hierarchy Rules:
 | `physical.dimensions.units` | Enum | Conditional | Unit of measurement | `feet`, `meters`; required if dimensions provided |
 | `physical.dimensions.width` | Number | No | Display width | Positive number |
 | `physical.dimensions.height` | Number | No | Display height | Positive number |
-| `physical.dimensions.elevation` | Number | No | Height above ground level | Positive number |
-| `physical.facing` | Number | No | Compass bearing in degrees | 0-359 (0=North, 90=East, 180=South, 270=West) |
+| `physical.dimensions.bottom_elevation` | Number | No | Bottom edge of object height above ground level | Positive number |
+| `physical.orientation.azimuth` | Number | No | 	Horizontal direction the display face points | 0-359 (0=North, 90=East, 180=South, 270=West) |
+| `physical.orientation.pitch` | Number | No | 	Upward/downward angle of the display face normal.   | 90 to -90 vertical display, positive faces upward, negative faces downward |
+| `physical.orientation.roll` | Number | No | 	The angular rotation around the front-to-back (longitudinal) axis. It is the tilting of the sides | 90 to -90 |
 | `physical.viewer` | Object | No | Viewer characteristics and orientation | |
 | `physical.viewer.context` | Enum | No | Viewer context or environment type | `vehicular`, `pedestrian`, `queue`, `seated` |
 | `physical.viewer.reads` | Enum | No | Traffic direction relative to display | `L` (left), `R` (right), `C` (center), `W` (wall), `omni` (omnidirectional) |
@@ -487,9 +489,12 @@ Validation Rules:
       "units": "feet",
       "width": 48,
       "height": 14,
-      "elevation": 25.0
+      "bottom_elevation": 25.0,
     },
-    "facing": 90,
+    "orientation" : {
+      "azimuth" : 90,
+      "pitch" : 0
+    },
     "viewer": {
       "context": "vehicular",
       "reads": "R"
