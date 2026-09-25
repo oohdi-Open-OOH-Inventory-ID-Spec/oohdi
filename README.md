@@ -1,6 +1,7 @@
 # oohdi: Out Of Home Display Identifier Specification
 
-Version: 0.1
+Version: 0.1 
+Status: DRAFT FOR PUBLIC COMMENTS
 
 ## 1. Introduction
 
