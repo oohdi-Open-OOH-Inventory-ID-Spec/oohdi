@@ -294,11 +294,19 @@ def render_shim_html(title: str, body_html: str, request_value: str = ""):
         </div>
       </div>
     </div>
-    <div class=\"section\">
-      <div class=\"card\">
+    <div class="section">
+      <div class="card">
+        <h2>Request for Comments</h2>
+        <p>This is a DRAFT proposal for public review. Comments should be submitted either as issue comments on the GitHub repository or as pull requests on the GitHub repository.</p>
+        <p><a href="{SPEC_GITHUB}" target="_blank" rel="noreferrer">Open OOHDI GitHub repository</a></p>
+        <p><a href="{SPEC_GITHUB}/issues" target="_blank" rel="noreferrer">Submit an issue comment</a> | <a href="{SPEC_GITHUB}/pulls" target="_blank" rel="noreferrer">Submit a pull request</a></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="card">
         <h2>More information</h2>
         <p>The full OOHDI specification, examples, and code are available in the project repository.</p>
-        <p><a href=\"{SPEC_GITHUB}\" target=\"_blank\" rel=\"noreferrer\">Open OOHDI GitHub repository</a></p>
+        <p><a href="{SPEC_GITHUB}" target="_blank" rel="noreferrer">Open OOHDI GitHub repository</a></p>
       </div>
     </div>
   </div>
@@ -347,7 +355,7 @@ class OOHDIWebsiteHandler(BaseHTTPRequestHandler):
                 "<p class=\"muted\">Try <code>org.oohdi.example-media-owner/oohdi/emp-001</code> as an example valid OOHDI.</p>"
                 "</div>"
             )
-            self._send(render_shim_html("OOHDI Validator", body, raw_id))
+            self._send(render_shim_html("OOHDI: Out Of Home Display Identifier Specification", body, raw_id))
             return
 
         report = evaluate_identifier(raw_id)
@@ -385,7 +393,7 @@ class OOHDIWebsiteHandler(BaseHTTPRequestHandler):
 
         lines.append("</div>")
         body = "\n".join(lines)
-        self._send(render_shim_html("OOHDI Validator", body, raw_id))
+        self._send(render_shim_html("OOHDI: Out Of Home Display Identifier Specification", body, raw_id))
 
     def _send(self, html: str):
         body = html.encode("utf-8")
