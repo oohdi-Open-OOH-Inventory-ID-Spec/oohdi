@@ -41,12 +41,33 @@ class SampleMediaOwnerHandler(BaseHTTPRequestHandler):
         segments = [s for s in path.split("/") if s]
 
         if path in {"", "/"}:
-            self._send_json(200, {
-                "service": "OOHDI sample media owner",
-                "media_owner": MEDIA_OWNER_DOMAIN,
-                "namespace": NAMESPACE,
-                "status": "sample",
-            })
+            self._send_html(
+                200,
+                f"""
+                <!doctype html>
+                <html lang=\"en\">
+                <head>
+                  <meta charset=\"utf-8\" />
+                  <title>Example Media Owner</title>
+                  <style>
+                    body {{ font-family: Arial, sans-serif; margin: 2rem; background: #f5f8ff; color: #12233a; }}
+                    .card {{ max-width: 760px; margin: 0 auto; background: white; border-radius: 14px; padding: 2rem; box-shadow: 0 10px 25px rgba(18,35,58,0.08); }}
+                    h1 {{ color: #0d2d54; }}
+                    code {{ background: #edf5ff; padding: 0.2rem 0.5rem; border-radius: 6px; }}
+                  </style>
+                </head>
+                <body>
+                  <div class=\"card\">
+                    <h1>Example Media Owner</h1>
+                    <p>This is a fictional OOHDI media owner landing page for <strong>{MEDIA_OWNER_DOMAIN}</strong>.</p>
+                    <p>Namespace: <code>{NAMESPACE}</code></p>
+                    <p>Registry discovery record: <code>_oohdi.{MEDIA_OWNER_DOMAIN} TXT "v=OOHDI1; r=example-registry.oohdi.org;"</code></p>
+                    <p>Example inventory lookup: <code>https://example-registry.oohdi.org/oohdi/{NAMESPACE}</code></p>
+                  </div>
+                </body>
+                </html>
+                """,
+            )
             return
 
         if path == "health":
@@ -84,6 +105,14 @@ class SampleMediaOwnerHandler(BaseHTTPRequestHandler):
         body = json.dumps(payload, separators=(",", ":")).encode("utf-8")
         self.send_response(status_code)
         self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def _send_html(self, status_code, html):
+        body = html.encode("utf-8")
+        self.send_response(status_code)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
