@@ -54,17 +54,17 @@ CERTBOT_ARGS=(
   --email "${CERTBOT_EMAIL}"
   --keep-until-expiring
   --standalone
+  --preferred-challenges http
 )
 
 for domain in "${DOMAINS[@]}"; do
   CERTBOT_ARGS+=( -d "${domain}" )
 done
 
-CERTBOT_ARGS+=(
-  --deploy-hook "cp /etc/letsencrypt/live/oohdi.org/fullchain.pem ${CERT_DIR}/oohdi.crt; cp /etc/letsencrypt/live/oohdi.org/privkey.pem ${CERT_DIR}/oohdi.key"
-)
-
 certbot "${CERTBOT_ARGS[@]}"
+
+cp /etc/letsencrypt/live/oohdi.org/fullchain.pem "${CERT_DIR}/oohdi.crt"
+cp /etc/letsencrypt/live/oohdi.org/privkey.pem "${CERT_DIR}/oohdi.key"
 
 if command -v docker >/dev/null 2>&1; then
   docker compose -f "${COMPOSE_FILE}" up -d nginx >/dev/null 2>&1 || true
