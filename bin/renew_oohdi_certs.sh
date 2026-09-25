@@ -16,6 +16,12 @@ DOMAINS=(
 
 CERTBOT_EMAIL="${CERTBOT_EMAIL:-admin@oohdi.org}"
 
+if [ -f /.dockerenv ] || [ -f /run/.containerenv ]; then
+  echo "ERROR: This script must be run on the droplet host, not inside a Docker container." >&2
+  echo "[$(date -u +'%Y-%m-%dT%H:%M:%SZ')] Refusing to run inside a container; execute on the host OS" >> "${LOG_FILE}"
+  exit 1
+fi
+
 if [ ! -f "${COMPOSE_FILE}" ]; then
   echo "[$(date -u +'%Y-%m-%dT%H:%M:%SZ')] Missing docker-compose.yml at ${COMPOSE_FILE}; aborting" >> "${LOG_FILE}"
   exit 1
