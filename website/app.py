@@ -333,7 +333,13 @@ class OOHDIWebsiteHandler(BaseHTTPRequestHandler):
         query = parse_qs(parsed.query)
         raw_id = query.get("id", [""])[0]
         if not raw_id:
-            body = "<div class=\"status\"><h3>Ready</h3><p class=\"muted\">Enter an OOHDI-compatible screen ID to validate it against the specification.</p></div>"
+            body = (
+                "<div class=\"status\">"
+                "<h3>Ready</h3>"
+                "<p class=\"muted\">Enter an OOHDI-compatible screen ID to validate it against the specification.</p>"
+                "<p class=\"muted\">Try <code>org.oohdi.example-media-owner/oohdi/emp-001</code> as an example valid OOHDI.</p>"
+                "</div>"
+            )
             self._send(render_shim_html("OOHDI Validator", body, raw_id))
             return
 
