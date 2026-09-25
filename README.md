@@ -15,7 +15,7 @@ This specification targets media owners, registries, SSPs, DSPs, advertising age
 
 #### Media Owners
 
-Ensure that your displays can be found by any buyer
+Ensure that your displays can be found and verified by any buyer
 
 #### Agencies and Media Buyers
 

@@ -270,6 +270,42 @@ def render_shim_html(title: str, body_html: str, request_value: str = ""):
 
     <div class="section">
       <div class="card">
+        <h2>Audience and use cases</h2>
+        <div class="two-col">
+          <div>
+            <h3><a href="{SPEC_GITHUB}#media-owners" target="_blank" rel="noreferrer">Media Owners</a></h3>
+            <p>Ensure that your displays can be found and verified by any buyer</p>
+          </div>
+          <div>
+            <h3><a href="{SPEC_GITHUB}#agencies-and-media-buyers" target="_blank" rel="noreferrer">Agencies and Media Buyers</a></h3>
+            <p>Verify that the displays that you are buying exist, are active and are in places you want to buy</p>
+          </div>
+          <div>
+            <h3><a href="{SPEC_GITHUB}#creative-teams" target="_blank" rel="noreferrer">Creative Teams</a></h3>
+            <p>Validate that the ad creatives you are building match the size specifications for the displays you are designing for.</p>
+          </div>
+          <div>
+            <h3><a href="{SPEC_GITHUB}#content-management-systems-cms" target="_blank" rel="noreferrer">Content Management Systems (CMS)</a></h3>
+            <p>Create a common way to represent, publish and promote display inventory for your users</p>
+          </div>
+          <div>
+            <h3><a href="{SPEC_GITHUB}#dsps" target="_blank" rel="noreferrer">DSP's</a></h3>
+            <p>De-duplicate and validate display inventory across all SSP's</p>
+          </div>
+          <div>
+            <h3><a href="{SPEC_GITHUB}#ssps" target="_blank" rel="noreferrer">SSP's</a></h3>
+            <p>Verify that ever changing media owner inventory is active, up to date, and accurately described</p>
+          </div>
+          <div>
+            <h3><a href="{SPEC_GITHUB}#ad-tech-providers" target="_blank" rel="noreferrer">Ad Tech Providers</a></h3>
+            <p>Innovate and build tools that interact with display data</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="card">
         <h2>Getting started guides</h2>
         <div class="two-col">
           <div>

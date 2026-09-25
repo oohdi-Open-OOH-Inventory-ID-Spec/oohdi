@@ -5,7 +5,7 @@ services:
       dockerfile: website/Dockerfile
     container_name: oohdi-website
     ports:
-      - "18082:8080"
+      - "18083:8080"
     environment:
       OOHDI_HOST: "0.0.0.0"
       OOHDI_PORT: "8080"
