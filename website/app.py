@@ -250,6 +250,13 @@ def render_shim_html(title: str, body_html: str, request_value: str = ""):
 
     <div class="section">
       <div class="card">
+        <h2>Who owns OOHDI?</h2>
+        <p>OOHDI is decentralized with no owner organization. It operates on principles of DNS and is designed to ensure no single entity controls IDs.</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="card">
         <h2>Who should build registries?</h2>
         <p>The following companies should consider exposing their inventory via an OOHDI compatible registry:</p>
         <ul>
