@@ -64,6 +64,7 @@ Millions of OOH displays globally run content and advertisements, managed by num
 * **Privacy and Security:** Clear delineation of public versus sensitive data
 * **Backward Compatibility:** Newer registry versions must support older clients
 * **Extensibility:** Vendor-specific data must not break interoperability
+* **Migration:** Simple migration patch from existing ID's to new ID's
 
 ---
 
@@ -79,6 +80,7 @@ The `oohdi` specification is guided by the following principles:
 * **Backward Compatibility First:** Older clients must continue to function
 * **Minimal Required Fields:** Encourage adoption through simplicity
 * **Extensible Without Fragmentation:** Extensions must not override core semantics
+* **Migration** Media Owners can leverage their existing ID's by simply namespacing them with their reverse DNS name
 
 ---
 
