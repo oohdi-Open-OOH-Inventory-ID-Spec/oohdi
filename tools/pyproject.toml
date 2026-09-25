@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "oohdi-tools"
+version = "0.1.0"
+description = "Developer tools for validating and testing OOHDI identifiers and registry behavior"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [{ name = "OOHDI Community" }]
+license = { text = "MIT" }
+keywords = ["oohdi", "out-of-home", "advertising", "registry", "validation"]
+
+[project.scripts]
+oohdi = "oohdi_tools.__main__:main"
+oohdi-validate = "oohdi_tools.validator:main"
+oohdi-dns = "oohdi_tools.dns_checker:main"
+oohdi-schema = "oohdi_tools.schema_validator:main"
+oohdi-conformance = "oohdi_tools.conformance:main"
+oohdi-bulk = "oohdi_tools.bulk_validator:main"
+oohdi-resolve = "oohdi_tools.resolve:main"
+oohdi-test = "oohdi_tools.test_suite:main"
+oohdi-fetch = "oohdi_tools.fetch:main"
+
+[tool.setuptools]
+package-dir = {"" = "."}
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["oohdi_tools*"]

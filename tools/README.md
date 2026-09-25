@@ -1,0 +1,71 @@
+# oohdi tooling prototypes
+
+This repository now includes a practical first-pass toolkit for implementing and testing the OOHDI specification.
+
+## Install
+
+From this directory:
+
+```bash
+python3 -m pip install -e .
+```
+
+You can then run the CLI tools directly:
+
+```bash
+oohdi --help
+oohdi-validate 'com.foobaroutdoor/oohdi/ABC-1234'
+oohdi-dns foobaroutdoor.com
+oohdi-schema sample.json
+oohdi-bulk ./records
+oohdi-fetch example-registry.oohdi.org org.oohdi.example-media-owner/oohdi/emp-001
+```
+
+## Included tools
+
+### Identifier validator
+Purpose: validate and canonicalize OOHDI identifiers before publishing or comparing them.
+
+### DNS authority checker
+Purpose: inspect the `_oohdi.<domain>` TXT record to determine the authoritative registry.
+
+### JSON schema validator
+Purpose: validate inventory records against the specification’s required structure and rules.
+
+### Conformance checker
+Purpose: ensure registry responses match expected OOHDI HTTP and payload behavior.
+
+### Mock registry
+Purpose: run a tiny local registry for development and integration testing.
+
+### Bulk validator
+Purpose: validate directories of inventory records in one pass.
+
+### Resolver
+Purpose: normalize an identifier and resolve it against a local sample dataset.
+
+### Test suite
+Purpose: run a lightweight validation pass over one file or many records.
+
+### Registry fetcher
+Purpose: accept a registry endpoint and an OOHDI ID, then fetch and display the registry response.
+
+## Why this is the right first toolchain
+
+These utilities address the highest-risk gaps in ecosystem adoption:
+
+- canonical ID correctness
+- DNS authority discovery
+- registry semantics
+- payload validation
+- bulk validation workflow
+
+## Recommended next tools
+
+The next likely additions are:
+
+1. OpenAPI contract for the registry API
+2. TypeScript client SDK
+3. Python package release on PyPI
+4. cross-language reference implementations
+5. browser-based OOHDI resolver/debugger

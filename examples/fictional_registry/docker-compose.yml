@@ -1,0 +1,11 @@
+services:
+  fictional-registry:
+    build:
+      context: .
+    container_name: fictional-oohdi-registry
+    ports:
+      - "18080:8080"
+    environment:
+      OOHDI_HOST: "0.0.0.0"
+      OOHDI_PORT: "8080"
+    restart: unless-stopped
