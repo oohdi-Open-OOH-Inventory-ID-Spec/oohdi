@@ -13,6 +13,7 @@ IMG_DIR = os.path.join(os.path.dirname(ROOT), "img")
 LOGO_PATH = os.path.join(IMG_DIR, "oohdi-logo-large.png")
 
 SPEC_GITHUB = "https://github.com/oohdi-Open-OOH-Inventory-ID-Spec/oohdi"
+GUIDE_INDEX = SPEC_GITHUB + "/blob/main/guides/index.md"
 MEDIA_OWNER_GUIDE = SPEC_GITHUB + "/blob/main/guides/media-owner-setup-guide.md"
 REGISTRY_GUIDE = SPEC_GITHUB + "/blob/main/guides/registry-setup-guide.md"
 REGISTRY_QUICKSTART = SPEC_GITHUB + "/blob/main/guides/registry-quickstart.md"
@@ -264,6 +265,12 @@ def render_shim_html(title: str, body_html: str, request_value: str = ""):
       <div class="card">
         <h2>Getting started guides</h2>
         <div class="two-col">
+          <div>
+            <h3>Overview</h3>
+            <ul>
+              <li><a href="{GUIDE_INDEX}" target="_blank" rel="noreferrer">Guide index</a></li>
+            </ul>
+          </div>
           <div>
             <h3>For media owners</h3>
             <ul>
