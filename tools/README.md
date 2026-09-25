@@ -49,23 +49,3 @@ Purpose: run a lightweight validation pass over one file or many records.
 
 ### Registry fetcher
 Purpose: accept a registry endpoint and an OOHDI ID, then fetch and display the registry response.
-
-## Why this is the right first toolchain
-
-These utilities address the highest-risk gaps in ecosystem adoption:
-
-- canonical ID correctness
-- DNS authority discovery
-- registry semantics
-- payload validation
-- bulk validation workflow
-
-## Recommended next tools
-
-The next likely additions are:
-
-1. OpenAPI contract for the registry API
-2. TypeScript client SDK
-3. Python package release on PyPI
-4. cross-language reference implementations
-5. browser-based OOHDI resolver/debugger
