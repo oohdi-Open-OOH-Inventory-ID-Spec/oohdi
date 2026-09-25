@@ -4,6 +4,7 @@ import re
 import socket
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse, parse_qs
+import urllib.error
 from urllib.request import Request, urlopen
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -52,17 +53,43 @@ def probe_txt_record(domain: str):
         return {"ok": False, "error": str(exc) }
 
 
+def build_registry_url(registry_host: str, identifier: str) -> str:
+    host = registry_host.strip().rstrip("/")
+    if host.startswith("http://") or host.startswith("https://"):
+        base = host
+    else:
+        if ":" in host and not host.startswith("["):
+            base = f"http://{host}"
+        else:
+            base = f"https://{host}"
+
+    canonical = canonicalize_identifier(identifier)
+    namespace, media_owner_id = canonical.rsplit("/oohdi/", 1)
+    return f"{base}/oohdi/{namespace}/{media_owner_id}"
+
+
 def fetch_registry_record(registry_host: str, identifier: str):
     try:
         canonical = canonicalize_identifier(identifier)
-        registry_root = registry_host.strip().rstrip("/")
-        if not registry_root.startswith("http://") and not registry_root.startswith("https://"):
-            registry_root = "https://" + registry_root
-        url = f"{registry_root}/oohdi/{canonical}"
+        url = build_registry_url(registry_host, canonical)
         req = Request(url, headers={"Accept": "application/json"})
         with urlopen(req, timeout=12) as resp:
-            payload = json.loads(resp.read().decode("utf-8"))
+            body = resp.read().decode("utf-8")
+            payload = json.loads(body) if body else {}
             return {"ok": True, "url": url, "status": resp.status, "payload": payload}
+    except urllib.error.HTTPError as exc:
+        body = exc.read().decode("utf-8", errors="replace")
+        try:
+            payload = json.loads(body) if body else {}
+        except json.JSONDecodeError:
+            payload = {"raw": body}
+        return {
+            "ok": False,
+            "url": url,
+            "status": exc.code,
+            "payload": payload,
+            "error": str(exc),
+        }
     except Exception as exc:
         return {"ok": False, "error": str(exc)}
 
@@ -162,6 +189,9 @@ def render_shim_html(title: str, body_html: str, request_value: str = ""):
     @media (max-width: 820px) {{ .two-col {{ grid-template-columns: 1fr; }} }}
     .card {{ background: rgba(13, 45, 84, 0.7); border: 1px solid var(--panel-border); border-radius: 18px; padding: 22px; }}
     h1, h2, h3, p {{ margin-top: 0; }}
+    .example-list {{ margin: 0; padding-left: 1.25rem; }}
+    .example-list li {{ margin: 10px 0; font-size: 1.2rem; line-height: 1.45; color: var(--light); }}
+    .example-list code {{ font-size: 1.15em; font-weight: 700; color: #bffaf5; background: rgba(79, 224, 216, 0.12); padding: 3px 7px; border-radius: 8px; }}
     .tag {{ display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: bold; color: var(--dark); background: var(--teal); }}
     .error-list {{ color: var(--danger); }}
     .warning-list {{ color: var(--warning); }}
@@ -205,10 +235,9 @@ def render_shim_html(title: str, body_html: str, request_value: str = ""):
       <div class="card">
         <h2>Example OOHDI identifiers</h2>
         <p>OOHDI identifiers follow a reverse-DNS namespace and a canonical inventory path.</p>
-        <ul>
-          <li><strong>Media owner:</strong> com.foobaroutdoor/oohdi</li>
-          <li><strong>Display:</strong> com.foobaroutdoor/oohdi/emp-001</li>
-          <li><strong>Example registry record:</strong> org.oohdi.example-media-owner/oohdi/emp-001</li>
+        <ul class="example-list">
+          <li><code>com.foobaroutdoor/oohdi/ab-1234-c</code></li>
+          <li><code>uk.co.barfoodmedia/oohdi/98765</code></li>
         </ul>
       </div>
       <div class="card">
