@@ -12,6 +12,9 @@ IMG_DIR = os.path.join(os.path.dirname(ROOT), "img")
 LOGO_PATH = os.path.join(IMG_DIR, "oohdi-logo-large.png")
 
 SPEC_GITHUB = "https://github.com/oohdi-Open-OOH-Inventory-ID-Spec/oohdi"
+MEDIA_OWNER_GUIDE = SPEC_GITHUB + "/blob/main/guides/media-owner-setup-guide.md"
+REGISTRY_GUIDE = SPEC_GITHUB + "/blob/main/guides/registry-setup-guide.md"
+REGISTRY_QUICKSTART = SPEC_GITHUB + "/blob/main/guides/registry-quickstart.md"
 
 OOHDI_COLOR_DARK = "#0d2d54"
 OOHDI_COLOR_TEAL = "#4fe0d8"
@@ -184,7 +187,7 @@ def render_shim_html(title: str, body_html: str, request_value: str = ""):
     <div class=\"section two-col\">
       <div class=\"card\">
         <h2>Why OOHDI exists</h2>
-        <p>OOHDI creates a globally unique, decentralized identifier for sellable out-of-home inventory. It helps buyers, sellers, creative teams, and media operators identify the same display consistently across fragmented systems.</p>
+        <p>OOHDI creates an open source, globally unique, decentralized identifier for sellable out-of-home inventory. It helps buyers, sellers, creative teams, and media operators identify the same display consistently across fragmented systems.</p>
         <p>Without a common identifier, inventory is hard to discover, verify, validate, and de-duplicate across SSPs, DSPs, CMS platforms, and media owner systems.</p>
       </div>
       <div class=\"card\">
@@ -198,7 +201,56 @@ def render_shim_html(title: str, body_html: str, request_value: str = ""):
         </ul>
       </div>
     </div>
+    <div class="section two-col">
+      <div class="card">
+        <h2>Example OOHDI identifiers</h2>
+        <p>OOHDI identifiers follow a reverse-DNS namespace and a canonical inventory path.</p>
+        <ul>
+          <li><strong>Media owner:</strong> com.foobaroutdoor/oohdi</li>
+          <li><strong>Display:</strong> com.foobaroutdoor/oohdi/emp-001</li>
+          <li><strong>Example registry record:</strong> org.oohdi.example-media-owner/oohdi/emp-001</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h2>What is a registry?</h2>
+        <p>A registry is the authoritative public service that exposes inventory data for a media owner namespace. It is the source of truth for screen records, metadata, and canonical OOHDI identifiers.</p>
+        <p>Registry discovery happens through DNS, using an <code>_oohdi.&lt;domain&gt;</code> TXT record that points to the authoritative registry host.</p>
+      </div>
+    </div>
 
+    <div class="section">
+      <div class="card">
+        <h2>Who should build registries?</h2>
+        <p>The following companies should consider exposing their inventory via an OOHDI compatible registry:</p>
+        <ul>
+          <li>Digital Signage CMS systems</li>
+          <li>Digital Signage player systems and CRM systems</li>
+          <li>Static billboard inventory systems</li>
+          <li>Medium to Large OOH companies that maintain their own source of inventory truth</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="card">
+        <h2>Getting started guides</h2>
+        <div class="two-col">
+          <div>
+            <h3>For media owners</h3>
+            <ul>
+              <li><a href="{MEDIA_OWNER_GUIDE}" target="_blank" rel="noreferrer">Media owner setup guide</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3>For registry owners</h3>
+            <ul>
+              <li><a href="{REGISTRY_GUIDE}" target="_blank" rel="noreferrer">Registry setup guide</a></li>
+              <li><a href="{REGISTRY_QUICKSTART}" target="_blank" rel="noreferrer">Registry quickstart</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class=\"section\">
       <div class=\"card\">
         <h2>More information</h2>
