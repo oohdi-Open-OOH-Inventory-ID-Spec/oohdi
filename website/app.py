@@ -11,6 +11,7 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 IMG_DIR = os.path.join(os.path.dirname(ROOT), "img")
 
 LOGO_PATH = os.path.join(IMG_DIR, "oohdi-logo-large.png")
+INFO_GRAPHIC_PATH = os.path.join(IMG_DIR, "oohdi-info-graphic.png")
 
 SPEC_GITHUB = "https://github.com/oohdi-Open-OOH-Inventory-ID-Spec/oohdi"
 GUIDE_INDEX = SPEC_GITHUB + "/blob/main/guides/index.md"
@@ -214,7 +215,11 @@ def render_shim_html(title: str, body_html: str, request_value: str = ""):
       </form>
       {body_html}
     </div>
-
+    <div class="section">
+      <div style="text-align: center;">
+        <img src="/oohdi-info-graphic.png" alt="OOHDI information graphic" style="max-width: 100%; height: auto; border: 1px solid var(--panel-border); border-radius: 18px; background: rgba(13, 45, 84, 0.7);" />
+      </div>
+    </div>
     <div class=\"section two-col\">
       <div class=\"card\">
         <h2>Why OOHDI exists</h2>
@@ -369,6 +374,21 @@ class OOHDIWebsiteHandler(BaseHTTPRequestHandler):
         if parsed.path == "/logo":
             try:
                 with open(LOGO_PATH, "rb") as f:
+                    data = f.read()
+                self.send_response(200)
+                self.send_header("Content-Type", "image/png")
+                self.send_header("Content-Length", str(len(data)))
+                self.end_headers()
+                self.wfile.write(data)
+                return
+            except Exception:
+                self.send_response(404)
+                self.end_headers()
+                return
+
+        if parsed.path == "/oohdi-info-graphic.png":
+            try:
+                with open(INFO_GRAPHIC_PATH, "rb") as f:
                     data = f.read()
                 self.send_response(200)
                 self.send_header("Content-Type", "image/png")
