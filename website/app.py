@@ -187,6 +187,7 @@ def render_shim_html(title: str, body_html: str, request_value: str = ""):
     .status h3 {{ margin: 0 0 8px; font-size: 1rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--teal); }}
     .result {{ margin-top: 24px; white-space: pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: rgba(3, 8, 14, 0.7); border: 1px solid rgba(79,224,216,0.18); border-radius: 12px; padding: 18px; overflow: auto; }}
     .section {{ margin-top: 38px; }}
+    .first-section {{ margin-bottom: 38px; }}
     .two-col {{ display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 24px; }}
     @media (max-width: 820px) {{ .two-col {{ grid-template-columns: 1fr; }} }}
     .card {{ background: rgba(13, 45, 84, 0.7); border: 1px solid var(--panel-border); border-radius: 18px; padding: 22px; }}
@@ -206,6 +207,16 @@ def render_shim_html(title: str, body_html: str, request_value: str = ""):
     <div class=\"brand\">
       <img src=\"/logo\" alt=\"OOHDI logo\" />
     </div>
+    <div class="first-section">
+      <div class="card" style="text-align: center; padding: 18px 22px;">
+        <p style="margin: 0; font-size: 1.1rem; line-height: 1.5; color: var(--light);">
+          OOHDI is a distributed, open source, globally unique identifier for OOH inventory
+        </p>
+        <p style="margin: 10px 0 0;">
+          <a href="{SPEC_GITHUB}" target="_blank" rel="noreferrer">Read the spec</a>
+        </p>
+      </div>
+    </div>
     <div class=\"box\">
       <form method=\"GET\" action=\"/\">
         <div class=\"search-row\">
@@ -215,12 +226,13 @@ def render_shim_html(title: str, body_html: str, request_value: str = ""):
       </form>
       {body_html}
     </div>
+    
     <div class="section">
       <div style="text-align: center;">
         <img src="/oohdi-info-graphic.png" alt="OOHDI information graphic" style="max-width: 100%; height: auto; border: 1px solid var(--panel-border); border-radius: 18px; background: rgba(13, 45, 84, 0.7);" />
       </div>
     </div>
-    <div class=\"section two-col\">
+    <div class="section two-col">
       <div class=\"card\">
         <h2>Why OOHDI exists</h2>
         <p>OOHDI creates an open source, globally unique, decentralized identifier for sellable out-of-home inventory. It helps buyers, sellers, creative teams, and media operators identify the same display consistently across fragmented systems.</p>
@@ -306,6 +318,24 @@ def render_shim_html(title: str, body_html: str, request_value: str = ""):
             <p>Innovate and build tools that interact with display data</p>
           </div>
         </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="card">
+        <h2>Implementation</h2>
+        <h3>Media Owners</h3>
+        <ol>
+          <li>Request that your CMS vendor or inventory management vendor enable an OOHDI compatible registry for your inventory</li>
+          <li>Publish the OOHDI DNS record to your nameservers</li>
+          <li>Your existing IDs become OOHDI compatible IDs automatically</li>
+        </ol>
+        <h3>Registry Vendors</h3>
+        <ol>
+          <li>Map your existing customer IDs to OOHDI compatible IDs (e.g. "screen-id-1" becomes "com.yourcustomername/oohdi/screen-id-1")</li>
+          <li>Expose the 2 OOHDI compatible endpoints</li>
+          <li>Enable OOHDI for your customers and notify them of the correct DNS record to publish</li>
+        </ol>
       </div>
     </div>
 
