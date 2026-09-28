@@ -76,19 +76,43 @@ def fetch_registry_record(registry_host: str, identifier: str):
         url = build_registry_url(registry_host, canonical)
         req = Request(url, headers={"Accept": "application/json"})
         with urlopen(req, timeout=12) as resp:
-            body = resp.read().decode("utf-8")
-            payload = json.loads(body) if body else {}
+            content_type = resp.headers.get("Content-Type", "")
+            body = resp.read().decode("utf-8", errors="replace")
+            try:
+                payload = json.loads(body) if body else {}
+            except json.JSONDecodeError as exc:
+                preview = body.strip().replace("\n", " ")[:240]
+                if not preview:
+                    preview = "<empty response body>"
+                return {
+                    "ok": False,
+                    "url": url,
+                    "status": resp.status,
+                    "content_type": content_type,
+                    "response_preview": preview,
+                    "error": (
+                        "Registry returned a non-JSON response body. "
+                        "This usually means the DNS r= value points to a URL that is not an OOHDI registry endpoint. "
+                        f"JSON parse error: {exc}"
+                    ),
+                }
             return {"ok": True, "url": url, "status": resp.status, "payload": payload}
     except urllib.error.HTTPError as exc:
+        content_type = exc.headers.get("Content-Type", "") if exc.headers else ""
         body = exc.read().decode("utf-8", errors="replace")
         try:
             payload = json.loads(body) if body else {}
         except json.JSONDecodeError:
             payload = {"raw": body}
+        preview = body.strip().replace("\n", " ")[:240]
+        if not preview:
+            preview = "<empty response body>"
         return {
             "ok": False,
             "url": url,
             "status": exc.code,
+            "content_type": content_type,
+            "response_preview": preview,
             "payload": payload,
             "error": str(exc),
         }
