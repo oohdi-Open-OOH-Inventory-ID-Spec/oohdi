@@ -408,13 +408,23 @@ Hierarchy Rules:
 | `physical.dimensions.units` | Enum | Conditional | Unit of measurement | `feet`, `meters`; required if dimensions provided |
 | `physical.dimensions.width` | Number | No | Display width | Positive number |
 | `physical.dimensions.height` | Number | No | Display height | Positive number |
-| `physical.dimensions.bottom_elevation` | Number | No | Bottom edge of object height above ground level | Positive number |
+| `physical.dimensions.bottom_elevation` | Number | No | Bottom edge elevation relative to the selected elevation reference | Non-negative number; interpretation depends on `elevation_reference` |
+| `physical.dimensions.elevation_reference` | Enum | No | Vertical reference point for `bottom_elevation` | `ground`, `sea`, `floor` |
+| `physical.dimensions.floor` | String | No | Building, level, or other indoor location identifier | Free-form string; examples include `1`, `Floor 2`, `roof`, `elevator A` |
 | `physical.orientation.azimuth` | Number | No | 	Horizontal direction the display face points | 0-359 (0=North, 90=East, 180=South, 270=West) |
 | `physical.orientation.pitch` | Number | No | 	Upward/downward angle of the display face normal.   | 90 to -90 vertical display, positive faces upward, negative faces downward |
 | `physical.orientation.roll` | Number | No | 	The angular rotation around the front-to-back (longitudinal) axis. It is the tilting of the sides | 90 to -90 |
 | `physical.viewer` | Object | No | Viewer characteristics and orientation | |
 | `physical.viewer.context` | Enum | No | Viewer context or environment type | `vehicular`, `pedestrian`, `queue`, `seated` |
 | `physical.viewer.reads` | Enum | No | Traffic direction relative to display | `L` (left), `R` (right), `C` (center), `W` (wall), `omni` (omnidirectional) |
+
+Elevation semantics:
+
+* `ground` – Distance above local ground level, primarily for outdoor displays.
+* `sea` – Height above sea level.
+* `floor` – Distance above the referenced floor level, for indoor or internal displays. Use `floor` to identify the relevant floor in free-form text.
+* `bottom_elevation` SHOULD specify `elevation_reference` when present so its meaning is unambiguous.
+* `floor` is independent of `elevation_reference` and may contain any string representation of a location, including `1`, `Floor 2`, `roof`, or `elevator A`.
 
 #### Device Fields
 
@@ -493,6 +503,8 @@ Validation Rules:
       "width": 48,
       "height": 14,
       "bottom_elevation": 25.0,
+      "elevation_reference": "floor",
+      "floor": "Floor 2"
     },
     "orientation" : {
       "azimuth" : 90,

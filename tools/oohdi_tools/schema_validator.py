@@ -25,6 +25,7 @@ VALID_LOCATION_TYPES = {"fixed", "mobile"}
 VALID_VIEWER_CONTEXT = {"vehicular", "pedestrian", "queue", "seated"}
 VALID_VIEWER_READS = {"L", "R", "C", "W", "omni"}
 VALID_DIMENSION_UNITS = {"feet", "meters", "pixels"}
+VALID_ELEVATION_REFERENCES = {"ground", "sea", "floor"}
 
 
 def _is_rfc3339(value: str) -> bool:
@@ -165,6 +166,19 @@ def validate_oohdi_record(record: Dict[str, Any]) -> List[str]:
                 errors.append("physical.dimensions.units is required when dimensions are present.")
             elif dims["units"] not in {"feet", "meters"}:
                 errors.append("physical.dimensions.units must be feet or meters.")
+
+            if "bottom_elevation" in dims:
+                elevation = dims["bottom_elevation"]
+                if not isinstance(elevation, (int, float)) or elevation < 0:
+                    errors.append("physical.dimensions.bottom_elevation must be a non-negative number.")
+
+            if "elevation_reference" in dims:
+                reference = dims["elevation_reference"]
+                if reference not in VALID_ELEVATION_REFERENCES:
+                    errors.append("physical.dimensions.elevation_reference must be one of: ground, sea, floor.")
+
+            if "floor" in dims and not isinstance(dims["floor"], str):
+                errors.append("physical.dimensions.floor must be a string.")
 
     taxonomy = record.get("taxonomy")
     if taxonomy is not None and isinstance(taxonomy, dict):
