@@ -14,8 +14,8 @@
 /build
 /builds
 
-/logs
-/nginx
+/logs/
+/nginx/certs/
 
 #Compiled Releases
 /release
