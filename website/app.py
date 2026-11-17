@@ -176,7 +176,7 @@ def evaluate_identifier(identifier: str):
     return result
 
 
-def render_shim_html(title: str, body_html: str, request_value: str = ""):
+def render_shim_html(title: str, body_html: str, request_value: str = "", domain_value: str = "", domain_body_html: str = ""):
     return f"""<!DOCTYPE html>
 <html lang=\"en\">
 <head>
@@ -241,16 +241,28 @@ def render_shim_html(title: str, body_html: str, request_value: str = ""):
         </p>
       </div>
     </div>
-    <div class=\"box\">
-      <form method=\"GET\" action=\"/\">
-        <div class=\"search-row\">
-          <input type=\"text\" name=\"id\" value=\"{html_escape(request_value)}\" placeholder=\"Enter an OOHDI-compatible display ID\" />
-          <button type=\"submit\">Check ID</button>
+    <div class="section box">
+      <h2>Check Domain</h2>
+      <form id="domain-form">
+        <div class="search-row">
+          <input type="text" id="domain-input" name="domain" value="{html_escape(domain_value)}" placeholder="Enter a domain name, e.g. mycompany.com" />
+          <button type="submit">Check Domain</button>
         </div>
       </form>
-      {body_html}
+      <div id="domain-result">{domain_body_html}</div>
     </div>
-    
+
+    <div class=\"box\" style="margin-top: 20px;">
+      <h2>Check ID</h2>
+      <form id="id-form">
+        <div class="search-row">
+          <input type="text" id="id-input" name="id" value="{html_escape(request_value)}" placeholder="Enter an OOHDI-compatible display ID" />
+          <button type="submit">Check ID</button>
+        </div>
+      </form>
+      <div id="id-result">{body_html}</div>
+    </div>
+
     <div class="section">
       <div style="text-align: center;">
         <img src="/oohdi-info-graphic.png" alt="OOHDI information graphic" style="max-width: 100%; height: auto; border: 1px solid var(--panel-border); border-radius: 18px; background: rgba(13, 45, 84, 0.7);" />
@@ -405,6 +417,34 @@ def render_shim_html(title: str, body_html: str, request_value: str = ""):
       </div>
     </div>
   </div>
+  <script>
+    async function fetchResult(endpoint, fieldName, value, resultId) {{
+      const result = document.getElementById(resultId);
+      result.innerHTML = '<div class="status"><p class="muted">Checking…</p></div>';
+      try {{
+        const response = await fetch(endpoint, {{
+          method: 'POST',
+          headers: {{'Content-Type': 'application/json'}},
+          body: JSON.stringify({{[fieldName]: value}})
+        }});
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Request failed');
+        result.innerHTML = data.html;
+      }} catch (error) {{
+        result.innerHTML = '<div class="status error-list"><strong>Request failed:</strong> ' + error.message + '</div>';
+      }}
+    }}
+
+    document.getElementById('id-form').addEventListener('submit', function(event) {{
+      event.preventDefault();
+      fetchResult('/api/check-id', 'id', document.getElementById('id-input').value, 'id-result');
+    }});
+
+    document.getElementById('domain-form').addEventListener('submit', function(event) {{
+      event.preventDefault();
+      fetchResult('/api/check-domain', 'domain', document.getElementById('domain-input').value, 'domain-result');
+    }});
+  </script>
 </body>
 </html>
 """
@@ -455,8 +495,66 @@ class OOHDIWebsiteHandler(BaseHTTPRequestHandler):
                 self.end_headers()
                 return
 
+        if parsed.path == "/":
+            body = (
+                "<div class=\"status\">"
+                "<h3>Ready</h3>"
+                "<p class=\"muted\">Enter an OOHDI-compatible screen ID to validate it against the specification.</p>"
+                "<p class=\"muted\">Try <code>org.oohdi.example-media-owner/oohdi/emp-001</code> as an example valid OOHDI.</p>"
+                "</div>"
+            )
+            self._send(render_shim_html("OOHDI: Out Of Home Display Identifier Specification", body))
+            return
+
+        if not parsed.path.startswith("/oohdi"):
+            self.send_response(404)
+            self.end_headers()
+            return
+
         query = parse_qs(parsed.query)
         raw_id = query.get("id", [""])[0]
+        raw_domain = query.get("domain", [""])[0]
+
+        domain_body = ""
+        if raw_domain:
+            domain_report = evaluate_domain(raw_domain)
+            domain_lines = ["<div class=\"status\">", "<h3>Domain Validation Result</h3>"]
+            canonical_domain = domain_report["canonical"] or domain_report["domain"]
+            domain_lines.append(f"<p><span class=\"tag\">{html_escape(canonical_domain)}</span></p>")
+
+            if domain_report["supported"]:
+                domain_lines.append("<p class=\"success\">OOHDI is supported: a valid OOHDI1 TXT record is published.</p>")
+            elif domain_report["valid"]:
+                domain_lines.append("<p class=\"error-list\">OOHDI TXT discovery is not valid or is not currently configured.</p>")
+
+            if domain_report["errors"]:
+                domain_lines.append("<div class=\"error-list\"><strong>Errors:</strong><ul>")
+                for msg in domain_report["errors"]:
+                    domain_lines.append(f"<li>{html_escape(msg)}</li>")
+                domain_lines.append("</ul></div>")
+
+            if domain_report["warnings"]:
+                domain_lines.append("<div class=\"warning-list\"><strong>Warnings:</strong><ul>")
+                for msg in domain_report["warnings"]:
+                    domain_lines.append(f"<li>{html_escape(msg)}</li>")
+                domain_lines.append("</ul></div>")
+
+            if domain_report["txt"]:
+                domain_lines.append(f"<div><strong>TXT lookup:</strong> {html_escape(json.dumps(domain_report['txt'], indent=2, sort_keys=True))}</div>")
+            if domain_report["registry"]:
+                domain_lines.append(f"<div><strong>Authoritative registry:</strong> {html_escape(domain_report['registry'])}</div>")
+
+            if not domain_report["supported"] and domain_report["canonical"]:
+                proposed_domain = f"_oohdi.{domain_report['canonical']}"
+                proposed_registry = f"registry.{domain_report['canonical']}"
+                domain_lines.append("<div class=\"warning-list\" style=\"margin-top: 20px;\"><strong>Are you the Domain Owner? - Use this Suggested TXT record:</strong>")
+                domain_lines.append(f"<p>Name: <code>{html_escape(proposed_domain)}</code></p>")
+                domain_lines.append(f"<p>Value: <code>v=OOHDI1; r={html_escape(proposed_registry)};</code></p>")
+                domain_lines.append("<p class=\"muted\">Replace the registry name with the DNS name of your authoritative OOHDI registry.</p></div>")
+
+            domain_lines.append("</div>")
+            domain_body = "\n".join(domain_lines)
+
         if not raw_id:
             body = (
                 "<div class=\"status\">"
@@ -465,10 +563,13 @@ class OOHDIWebsiteHandler(BaseHTTPRequestHandler):
                 "<p class=\"muted\">Try <code>org.oohdi.example-media-owner/oohdi/emp-001</code> as an example valid OOHDI.</p>"
                 "</div>"
             )
-            self._send(render_shim_html("OOHDI: Out Of Home Display Identifier Specification", body, raw_id))
+            self._send(render_shim_html("OOHDI: Out Of Home Display Identifier Specification", body))
             return
 
-        report = evaluate_identifier(raw_id)
+        if raw_id:
+            report = evaluate_identifier(raw_id)
+        else:
+            report = evaluate_domain(raw_domain)
 
         lines = []
         lines.append("<div class=\"status\">")
@@ -503,7 +604,25 @@ class OOHDIWebsiteHandler(BaseHTTPRequestHandler):
 
         lines.append("</div>")
         body = "\n".join(lines)
-        self._send(render_shim_html("OOHDI: Out Of Home Display Identifier Specification", body, raw_id))
+        self._send(render_shim_html("OOHDI: Out Of Home Display Identifier Specification", body, raw_id, raw_domain, domain_body))
+
+    def do_POST(self):
+        parsed = urlparse(self.path)
+        try:
+            content_length = int(self.headers.get("Content-Length", "0"))
+            payload = json.loads(self.rfile.read(content_length).decode("utf-8") or "{}")
+
+            if parsed.path == "/api/check-id":
+                html = render_identifier_result(evaluate_identifier(str(payload.get("id", "")).strip()))
+            elif parsed.path == "/api/check-domain":
+                html = render_domain_result(evaluate_domain(str(payload.get("domain", "")).strip()))
+            else:
+                self._send_json({"error": "Unknown API endpoint."}, 404)
+                return
+
+            self._send_json({"html": html})
+        except Exception as exc:
+            self._send_json({"error": str(exc)}, 400)
 
     def _send(self, html: str):
         body = html.encode("utf-8")
@@ -513,13 +632,147 @@ class OOHDIWebsiteHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _send_json(self, data: dict, status: int = 200):
+        body = json.dumps(data).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
     def log_message(self, fmt, *args):
         return
+
+
+def canonicalize_domain(domain: str) -> str:
+    if domain is None:
+        raise ValueError("Domain is required.")
+
+    value = str(domain).strip().lower().rstrip(".")
+    if "://" in value:
+        parsed = urlparse(value)
+        value = parsed.hostname or ""
+    else:
+        value = value.split("/", 1)[0]
+
+    value = value.rstrip(".")
+
+    if value.startswith("www."):
+        value = value[4:]
+
+    if not value:
+        raise ValueError("Invalid DNS name: enter a domain name such as mycompany.com.")
+    if len(value) > 253:
+        raise ValueError("Invalid DNS name: domain names cannot exceed 253 characters.")
+
+    labels = value.split(".")
+    if len(labels) < 2:
+        raise ValueError("Invalid DNS name: include a top-level domain, for example mycompany.com.")
+    for label in labels:
+        if not re.fullmatch(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?", label):
+            raise ValueError("Invalid DNS name: use letters, numbers, dots, and hyphens only.")
+
+    return value
+
+
+def evaluate_domain(domain: str):
+    result = {"domain": domain, "canonical": None, "valid": False, "supported": False, "txt": None, "registry": None, "errors": [], "warnings": []}
+
+    try:
+        canonical = canonicalize_domain(domain)
+        result["canonical"] = canonical
+        result["valid"] = True
+    except ValueError as exc:
+        result["errors"].append(str(exc))
+        return result
+
+    txt = probe_txt_record(canonical)
+    result["txt"] = txt
+    if not txt["ok"]:
+        result["errors"].append("No _oohdi TXT record could be found for this domain.")
+        return result
+
+    registry = None
+    version = None
+    for entry in txt["records"]:
+        match = re.search(r"(?:^|;)\s*v\s*=\s*([A-Za-z0-9]+)", entry, re.IGNORECASE)
+        if match:
+            version = match.group(1)
+        registry_match = re.search(r"(?:^|;)\s*r\s*=\s*([^;\s]+)", entry, re.IGNORECASE)
+        if match and registry_match:
+            registry = registry_match.group(1).strip()
+            break
+
+    result["registry"] = registry
+    if version == "OOHDI1" and registry:
+        if "://" in registry:
+            result["warnings"].append("The r= value must be a DNS name, not an HTTP/HTTPS URL.")
+        elif not re.fullmatch(r"[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?", registry.lower()):
+            result["warnings"].append("The r= value contains invalid DNS-name characters.")
+        else:
+            result["supported"] = True
+    else:
+        result["errors"].append("TXT record found, but it is missing a valid OOHDI1 r= registry declaration.")
+
+    return result
+
+
+def render_identifier_result(report: dict) -> str:
+    lines = ["<div class=\"status\">", "<h3>Validation Result</h3>"]
+    lines.append(f"<p><span class=\"tag\">{html_escape(report['canonical'] or report['identifier'])}</span></p>")
+    lines.append("<p class=\"success\">Identifier format is valid.</p>" if report["valid"] else "<p class=\"error-list\">Identifier format is invalid.</p>")
+
+    for heading, key, css in (("Errors", "errors", "error-list"), ("Warnings", "warnings", "warning-list")):
+        if report[key]:
+            lines.append(f"<div class=\"{css}\"><strong>{heading}:</strong><ul>")
+            lines.extend(f"<li>{html_escape(msg)}</li>" for msg in report[key])
+            lines.append("</ul></div>")
+
+    if report["txt"]:
+        lines.append(f"<div><strong>TXT record:</strong> {html_escape(json.dumps(report['txt'], indent=2, sort_keys=True))}</div>")
+    if report["registry"]:
+        lines.append(f"<div><strong>Registry:</strong> {html_escape(report['registry'])}</div>")
+    if report["response"]:
+        lines.append(f"<div><strong>Registry response:</strong><br><pre>{html_escape(json.dumps(report['response'], indent=2, sort_keys=True))}</pre></div>")
+    lines.append("</div>")
+    return "\n".join(lines)
+
+
+def render_domain_result(report: dict) -> str:
+    lines = ["<div class=\"status\">", "<h3>Domain Validation Result</h3>"]
+    lines.append(f"<p><span class=\"tag\">{html_escape(report['canonical'] or report['domain'])}</span></p>")
+
+    if report["supported"]:
+        lines.append("<p class=\"success\">OOHDI is supported: a valid OOHDI1 TXT record is published.</p>")
+    elif report["valid"]:
+        lines.append("<p class=\"error-list\">OOHDI TXT discovery is not valid or is not currently configured.</p>")
+
+    for heading, key, css in (("Errors", "errors", "error-list"), ("Warnings", "warnings", "warning-list")):
+        if report[key]:
+            lines.append(f"<div class=\"{css}\"><strong>{heading}:</strong><ul>")
+            lines.extend(f"<li>{html_escape(msg)}</li>" for msg in report[key])
+            lines.append("</ul></div>")
+
+    if report["txt"]:
+        lines.append(f"<div><strong>TXT lookup:</strong> {html_escape(json.dumps(report['txt'], indent=2, sort_keys=True))}</div>")
+    if report["registry"]:
+        lines.append(f"<div><strong>Authoritative registry:</strong> {html_escape(report['registry'])}</div>")
+
+    if not report["supported"] and report["canonical"]:
+        proposed_domain = f"_oohdi.{report['canonical']}"
+        proposed_registry = f"registry.{report['canonical']}"
+        lines.append("<div class=\"warning-list\" style=\"margin-top: 20px;\"><strong>Are you the Domain Owner? - Use this Suggested TXT record:</strong>")
+        lines.append(f"<p>Name: <code>{html_escape(proposed_domain)}</code></p>")
+        lines.append(f"<p>Value: <code>v=OOHDI1; r={html_escape(proposed_registry)};</code></p>")
+        lines.append("<p class=\"muted\">Replace the registry name with the DNS name of your authoritative OOHDI registry.</p></div>")
+
+    lines.append("</div>")
+    return "\n".join(lines)
 
 
 if __name__ == "__main__":
     host = os.environ.get("OOHDI_HOST", "0.0.0.0")
     port = int(os.environ.get("OOHDI_PORT", "8080"))
     server = HTTPServer((host, port), OOHDIWebsiteHandler)
-    print(f"OOHDI website running at http://{host}:{port}")
+    print(f"OOHDI website running at http://{host}:{port}", flush=True)
     server.serve_forever()
