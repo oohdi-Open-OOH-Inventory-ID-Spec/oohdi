@@ -14,6 +14,9 @@
 /build
 /builds
 
+/logs
+/nginx
+
 #Compiled Releases
 /release
 
